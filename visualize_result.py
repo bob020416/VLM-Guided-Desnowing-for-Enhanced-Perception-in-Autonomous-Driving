@@ -3,7 +3,7 @@ import os
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
-resized = True
+resized = False
 desnow_all_path = 'drive_dataset/desnow_all_pred' if not resized else 'drive_dataset/desnow_all_resized_pred'
 desnow_part_path = 'drive_dataset/desnow_part_pred' if not resized else 'drive_dataset/desnow_part_resized_pred'
 gt_data_path = 'drive_dataset/clear_gt' if not resized else 'drive_dataset/clear_resized_gt'

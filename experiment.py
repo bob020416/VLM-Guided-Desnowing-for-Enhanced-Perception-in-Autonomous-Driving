@@ -33,7 +33,7 @@ def calculate_iou(bbox1, bbox2):
 
 def draw_bbox(img, bbox_list):
     for bbox in bbox_list:
-        cv2.rectangle(img, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 0, 255), 2)
+        cv2.rectangle(img, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 255, 0), 3)
     return img
         
 def parse_args():
