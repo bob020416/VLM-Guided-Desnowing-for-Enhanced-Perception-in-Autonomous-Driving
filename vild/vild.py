@@ -291,15 +291,16 @@ if __name__ == '__main__':
     img_root = '/home/hcis-s17/multimodal_manipulation/patrick/CV/final/drive_dataset/snow_resized'
     object_list = ['car', 'pedestrian', 'vehicle', 'person', 'bicycle', 'truck', 'bus', 'motorcycle', 'traffic light', 'stop sign']
     clear_img_postfix = 'leftImg8bit.png'
+    
+    max_boxes_to_draw = 20
+    nms_threshold = 0.6
+    min_rpn_score_thresh = 0.9
+    min_box_area = 220
+    params = max_boxes_to_draw, nms_threshold, min_rpn_score_thresh, min_box_area
     for img in tqdm(os.listdir(img_root), ncols=100, leave=False):
         image_path = os.path.join(img_root, img)
         if not image_path.endswith('.png') and not image_path.endswith('.jpg'):
             continue
-        max_boxes_to_draw = 20
-        nms_threshold = 0.6
-        min_rpn_score_thresh = 0.9
-        min_box_area = 220
-        params = max_boxes_to_draw, nms_threshold, min_rpn_score_thresh, min_box_area
         max_bbox = get_vild_bbox(image_path, object_list, params)
         with open(image_path.replace(clear_img_postfix, 'bbox.txt'), 'w') as f:
             f.write('\t'.join(map(str, max_bbox)))
