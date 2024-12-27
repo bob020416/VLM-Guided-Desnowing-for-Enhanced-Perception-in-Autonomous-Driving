@@ -14,6 +14,7 @@ from scipy.special import softmax
 
 model = None
 session = None
+ckpt_path = '/home/hcis-s17/multimodal_manipulation/patrick/CV/VLM-Guided-Desnowing-for-Enhanced-Perception-in-Autonomous-Driving/vild/ckpt' 
 
 def get_vild_bbox(image_path, object_list, params):
     global model, session
@@ -268,22 +269,22 @@ def get_vild_bbox(image_path, object_list, params):
     indices = np.argsort(-np.max(scores_all, axis=1))  # Results are ranked by scores
     indices_fg = np.array([i for i in indices if np.argmax(scores_all[i]) != 0])
     max_bbox = [float('inf'), float('inf'), float('-inf'), float('-inf')]
+    bbox_list = []
 
     for anno_idx in indices_fg[:max_boxes_to_draw]:
         bbox = rescaled_detection_boxes[anno_idx]
+        bbox_list.append(bbox)
         max_bbox = [min(max_bbox[i], bbox[i]) if i <= 1 else max(max_bbox[i], bbox[i]) for i in range(4)]
-    return max_bbox
+    return max_bbox, bbox_list
         
-    
-if __name__ == '__main__':
-    
-
+def main():
+    global model, session, ckpt_path
     clip.available_models()
     model, preprocess = clip.load("ViT-B/32")
 
     session = tf.Session(graph=tf.Graph())
 
-    saved_model_dir = '/home/hcis-s17/multimodal_manipulation/patrick/CV/final/vild/ckpt' 
+    saved_model_dir = ckpt_path
 
     _ = tf.saved_model.load(session, ['serve'], saved_model_dir)
 
@@ -301,6 +302,41 @@ if __name__ == '__main__':
         image_path = os.path.join(img_root, img)
         if not image_path.endswith('.png') and not image_path.endswith('.jpg'):
             continue
-        max_bbox = get_vild_bbox(image_path, object_list, params)
+        max_bbox, _ = get_vild_bbox(image_path, object_list, params)
         with open(image_path.replace(clear_img_postfix, 'bbox.txt'), 'w') as f:
             f.write('\t'.join(map(str, max_bbox)))
+
+def show_example(image_path):
+    
+    global model, session, ckpt_path
+    clip.available_models()
+    model, preprocess = clip.load("ViT-B/32")
+
+    session = tf.Session(graph=tf.Graph())
+
+    saved_model_dir = ckpt_path
+
+    _ = tf.saved_model.load(session, ['serve'], saved_model_dir)
+    object_list = ['car', 'pedestrian', 'vehicle', 'person', 'bicycle', 'truck', 'bus', 'motorcycle', 'traffic light', 'stop sign']
+    
+    max_boxes_to_draw = 50
+    nms_threshold = 0.6
+    min_rpn_score_thresh = 0.9
+    min_box_area = 220
+    params = max_boxes_to_draw, nms_threshold, min_rpn_score_thresh, min_box_area
+    if not image_path.endswith('.png') and not image_path.endswith('.jpg'):
+        raise Exception('Invalid image path')
+    max_bbox, bbox_list = get_vild_bbox(image_path, object_list, params)
+    image = cv2.imread(image_path)
+    cv2.imwrite('raw.png', image)
+    for bbox in bbox_list:
+        y1, x1, y2, x2 = bbox
+        cv2.rectangle(image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
+    cv2.rectangle(image, (int(max_bbox[1]), int(max_bbox[0])), (int(max_bbox[3]), int(max_bbox[2])), (0, 0, 0), 5)
+    cv2.imwrite('result.png', image)
+    
+if __name__ == '__main__':
+    image_path = '/home/hcis-s17/multimodal_manipulation/patrick/CV/VLM-Guided-Desnowing-for-Enhanced-Perception-in-Autonomous-Driving/drive_dataset/snow/zurich_000074_000019_leftImg8bit.png'
+    # image_path = '/home/hcis-s17/multimodal_manipulation/patrick/CV/VLM-Guided-Desnowing-for-Enhanced-Perception-in-Autonomous-Driving/drive_dataset/snow/zurich_000036_000019_leftImg8bit.png'
+    show_example(image_path)
+    
