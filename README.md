@@ -1,6 +1,4 @@
-Here's a detailed and well-structured README file for your GitHub repository:
 
----
 
 # **VLM-Guided Desnowing for Enhanced Perception in Autonomous Driving**  
 **Team 17**  
